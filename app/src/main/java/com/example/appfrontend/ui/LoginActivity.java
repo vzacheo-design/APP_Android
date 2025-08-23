@@ -12,8 +12,10 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.appfrontend.R;
+import com.example.appfrontend.database.DatabaseClient;
 import com.example.appfrontend.model.LoginRequest;
 import com.example.appfrontend.model.LoginResponse;
+import com.example.appfrontend.model.TokenEntity;
 import com.example.appfrontend.service.ApiClient;
 import com.example.appfrontend.service.ApiService;
 
@@ -45,22 +47,37 @@ public class LoginActivity extends AppCompatActivity {
         String username = editUsername.getText().toString().trim();
         String password = editPassword.getText().toString().trim();
 
-        if(username.isEmpty() || password.isEmpty()) {
+        if (username.isEmpty() || password.isEmpty()) {
             Toast.makeText(this, "Compila tutti i campi", Toast.LENGTH_SHORT).show();
             return;
         }
 
         LoginRequest request = new LoginRequest(username, password);
-        Call<LoginResponse> call = apiService.login(request); // da aggiungere in ApiService
+        Call<LoginResponse> call = apiService.login(request); // Assicurati di aver aggiunto il metodo in ApiService
 
         call.enqueue(new Callback<LoginResponse>() {
             @Override
             public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
-                if(response.isSuccessful() && response.body() != null) {
+                if (response.isSuccessful() && response.body() != null) {
                     LoginResponse loginResponse = response.body();
-                    // Mostra un popup con i token
-                    String msg = "Access Token:\n" + loginResponse.getAccessToken() +
-                            "\n\nRefresh Token:\n" + loginResponse.getRefreshToken();
+
+                    String accessToken = loginResponse.getAccessToken();
+                    String refreshToken = loginResponse.getRefreshToken();
+
+                    // ✅ Salvo i token in Room
+                    TokenEntity tokenEntity = new TokenEntity(accessToken, refreshToken);
+                    DatabaseClient.getInstance(LoginActivity.this)
+                            .getAppDatabase()
+                            .tokenDao()
+                            .deleteAll(); // rimuovo i vecchi token
+                    DatabaseClient.getInstance(LoginActivity.this)
+                            .getAppDatabase()
+                            .tokenDao()
+                            .insert(tokenEntity);
+
+                    // ✅ Mostro anche un popup coi token
+                    String msg = "Access Token:\n" + accessToken +
+                            "\n\nRefresh Token:\n" + refreshToken;
                     Toast.makeText(LoginActivity.this, msg, Toast.LENGTH_LONG).show();
                 } else {
                     Toast.makeText(LoginActivity.this, "Login fallito", Toast.LENGTH_LONG).show();

@@ -2,7 +2,7 @@
 
 public class LoginResponse {
 } */
-
+/*
 package com.example.appfrontend.model;
 
 public class LoginResponse {
@@ -38,5 +38,21 @@ public class LoginResponse {
     public void setTokenType(String tokenType) {
         this.tokenType = tokenType;
     }
+} */
+
+package com.example.appfrontend.model;
+
+public class LoginResponse {
+    private String accessToken;
+    private String refreshToken;
+
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
 }
+
 
