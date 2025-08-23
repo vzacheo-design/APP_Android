@@ -25,6 +25,7 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+import android.content.Intent;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -37,6 +38,8 @@ import com.example.appfrontend.service.ApiService;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+
+
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -61,8 +64,43 @@ public class RegisterActivity extends AppCompatActivity {
 
         btnRegister.setOnClickListener(v -> registerUser());
     }
-
     private void registerUser() {
+        String username = editUsername.getText().toString().trim();
+        String email = editEmail.getText().toString().trim();
+        String password = editPassword.getText().toString().trim();
+
+        if (username.isEmpty() || email.isEmpty() || password.isEmpty()) {
+            Toast.makeText(this, "Compila tutti i campi", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Creo il RegisterRequest usando il costruttore a tre parametri
+        RegisterRequest request = new RegisterRequest(username, email, password);
+
+        Call<RegisterResponse> call = apiService.register(request);
+        call.enqueue(new Callback<RegisterResponse>() {
+            @Override
+            public void onResponse(Call<RegisterResponse> call, Response<RegisterResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    Toast.makeText(RegisterActivity.this, response.body().getMessage(), Toast.LENGTH_LONG).show();
+
+                    // ✅ Apri LoginActivity dopo registrazione
+                    Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                    startActivity(intent);
+                    finish(); // Chiude la RegisterActivity
+                } else {
+                    Toast.makeText(RegisterActivity.this, "Errore nella registrazione", Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<RegisterResponse> call, Throwable t) {
+                Toast.makeText(RegisterActivity.this, "Errore: " + t.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    /* private void registerUser() {
         String username = editUsername.getText().toString().trim();
         String email = editEmail.getText().toString().trim();
         String password = editPassword.getText().toString().trim();
@@ -92,4 +130,5 @@ public class RegisterActivity extends AppCompatActivity {
             }
         });
     }
+    */
 }
