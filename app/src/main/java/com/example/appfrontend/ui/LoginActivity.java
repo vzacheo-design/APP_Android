@@ -18,6 +18,7 @@ import com.example.appfrontend.model.LoginResponse;
 import com.example.appfrontend.model.TokenEntity;
 import com.example.appfrontend.service.ApiClient;
 import com.example.appfrontend.service.ApiService;
+import com.example.appfrontend.service.TokenManager;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -38,7 +39,7 @@ public class LoginActivity extends AppCompatActivity {
         editPassword = findViewById(R.id.editPassword);
         btnLogin = findViewById(R.id.btnLogin);
 
-        apiService = ApiClient.getApiService();
+        apiService = ApiClient.getApiService(this);
 
         btnLogin.setOnClickListener(v -> loginUser());
     }
@@ -61,6 +62,11 @@ public class LoginActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     LoginResponse loginResponse = response.body();
 
+                    // 🔹 Salva in variabili globali
+                    TokenManager.getInstance().saveTokens(
+                            loginResponse.getAccessToken(),
+                            loginResponse.getRefreshToken()
+                    );
                     String accessToken = loginResponse.getAccessToken();
                     String refreshToken = loginResponse.getRefreshToken();
 
